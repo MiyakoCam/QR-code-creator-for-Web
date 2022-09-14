@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>QRコード作成</title>
+        <meta charset="UTF-8" lang="ja">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <meta name="description" content="QRコードを作成します。?url=http://example.comのようにしてください。">
+        <!--自前のCSS読み込み-->
+        <link rel="stylesheet" href="../../fonts.css" type="text/css">
+        <!--SNSでのサイト表示-->
+        <meta property="twitter:card" content="summary">
+        <meta property="twitter:site" content="@MiyakoCam">
+        <meta property="twitter:description" content="パラメーターからQRコードを作成">
+        <meta property="og:title" content="QRコードを作成">
+        <meta property="og:image" content="http://nanka.html.xdomain.jp/pictures/qrimage.png">
+        <meta property="og:site_name" content="パラメーターからQRコードを作成">
+        <!--その他のCSS・ライブラリ読み込み-->
+        <script src="https://kit.fontawesome.com/e9f92a9dd0.js" crossorigin="anonymous"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script> 
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-9SL593EYR6"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            
+            gtag('config', 'G-9SL593EYR6');
+        </script>
+        <style>
+            body {
+                font-family: nanka sans , webfonts , sans-serif;
+            }
+            input {
+                font-family: nanka sans , webfonts , sans-serif;
+                font-size: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        <h2 style="margin: 1em 0 0 1em;font-weight: normal;">
+            <input type="text" id="urlbox" placeholder="URLかテキストを入力" style="font-size: 100%;width: 80%;"><button id="qrcreate" style="margin-left: 1em;font-size: 100%;">作成</button>
+            <p><a href="qrcode_simple.html">QRコードのみを取得する（埋め込み向け）</a></p>
+            <div id="img-qr">
+
+            </div>
+            <p>現在の表示内容：<input type="text" id="qrcodenaiyo" style="font-size: 100%;font-family: nanka sans , webfonts;width: 50%;"></p>
+            <p></p>
+            <p>設定
+                <br>
+                線の色：<input type="color" id="foreground_color" value="#000000">
+                <br>背景色：<input type="color" id="background_color" value="#ffffff">
+                <br>幅・高さ：<input type="range" id="widthheight" min="50" max="1000" value="300">&nbsp;<span id="widthheight_info">300px</span>
+            </p>
+        </h2>
+        <iframe src="http://nanka.html.xdomain.jp/bin/tekito/qrcode_simple.html?url=http://korakuji.starfree.jp" id="parentframe" frameborder="0" style="overflow: hidden;width: 10vw;"></iframe>
+    </body>
+    <script> 
+        //詳細設定
+        let foreground_color = document.getElementById('foreground_color');
+        let background_color = document.getElementById('background_color');
+        let widthheight = document.getElementById('widthheight');
+        let widthheight_info = document.getElementById('widthheight_info');
+
+        widthheight.addEventListener("input",()=>{
+            widthheight_info.innerText = widthheight.value + 'px';
+        });
+        
+        //ボックスの処理
+        var urlbox = document.getElementById('urlbox');
+        let qrcreate = document.getElementById('qrcreate');
+        var urlfile = window.location.href.replace(window.location.search , '');
+        qrcreate.addEventListener("click",()=>{
+            window.location.href = 'http://nanka.html.xdomain.jp/bin/tekito/qrcode.html?url=' + urlbox.value + '&color=' + foreground_color.value.replace("#","") + '&back_color=' + background_color.value.replace("#","") + '&size=' + widthheight.value;
+        });
+        window.document.onkeydown = function(event){
+        if (event.key === 'Enter') {
+            window.location.href = 'http://nanka.html.xdomain.jp/bin/tekito/qrcode.html?url=' + urlbox.value + '&color=' + foreground_color.value.replace("#","") + '&back_color=' + background_color.value.replace("#","") + '&size=' + widthheight.value;
+            }
+        }
+
+        urlbox.addEventListener("click",()=>{
+            urlbox.select();
+        });
+
+        //肝心な処理
+        
+            if(window.location.search.indexOf('url=') && window.location.search.indexOf('color=') && window.location.search.indexOf('back_color=') && window.location.search.indexOf('size=') != -1) { //URLに?url=は入っているか？
+                //はい、入っています。
+                var url = new URL(window.location.href); //?を切り取る
+                var params = url.searchParams;
+                var param_url = params.get('url');
+                console.log('内容：' + param_url);
+                urlbox.value = param_url;
+                var param_color = '#' + params.get('color');
+                console.log('線の色：' + param_color);
+                foreground_color.value = param_color;
+                var param_back_color = '#' + params.get('back_color');
+                console.log('背景色：' + param_back_color);
+                background_color.value = param_back_color;
+                var param_size = params.get('size');
+                console.log('サイズ：' + param_size + 'px');
+                widthheight.value = param_size;
+                var qrtext = param_url;
+                document.getElementById('qrcodenaiyo').value = qrtext;
+                var utf8qrtext = unescape(encodeURIComponent(qrtext));
+                $("#img-qr").html("");
+                $("#img-qr").qrcode({
+                    text: utf8qrtext,
+                    background : param_back_color,
+	                foreground : param_color,
+                    width: param_size,
+                    height: param_size
+                });
+            } else {
+                //いいえ、入っていません。
+                if (window.location.search.indexOf('url=') != -1) {
+                    document.getElementById('img-qr').innerHTML = '設定用パラメータがありません。<br>上のボックスに文字列を入れてQRコードを作成してください。';
+                } else {
+                    document.getElementById('img-qr').innerHTML = 'パラメータがありません。<br>上のボックスに文字列を入れてQRコードを作成してください。';
+                }
+                
+            }
+            
+            
+            window.addEventListener('message', function(e) {
+  var iframe = $("#parentframe");
+  var eventName = e.data[0];
+  var data = e.data[1];
+  switch(eventName) {
+      case 'setHeight':
+          iframe.height(data);
+          break;
+      }
+  }, false);
+    </script>
+</html>
